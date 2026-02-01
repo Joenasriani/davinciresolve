@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DaVinci Resolve Master Academy</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        
+        @keyframes gradient-x {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .animate-gradient-x {
+            background-size: 200% 200%;
+            animation: gradient-x 5s ease infinite;
+        }
+        .cert-glow {
+            box-shadow: 0 0 50px -10px rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-neutral-950">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useMemo } = React;
+
+        const ACADEMY_DATA = {
+            edit: {
+                icon: 'Scissors',
+                color: 'blue',
+                modules: [
+                    {
+                        id: 1,
+                        title: "Edit 1: Timeline Philosophy",
+                        content: "The Edit page is for narrative structure. It uses a track-based system where clips are layered vertically. Mastering the timeline means understanding the difference between overwriting and inserting.",
+                        mentalModel: "The Storyboard: You are building the skeleton of your film here.",
+                        quiz: [
+                            { q: "What is the primary goal of the Edit page?", a: ["Color grading", "Narrative assembly and edit", "3D modeling", "Sound mixing"], ans: 1 },
+                            { q: "Standard Mac shortcut for the Blade tool?", a: ["Shift + B", "Option + B", "Cmd + Shift + B", "B activate / Cmd + B cut"], ans: 3 },
+                            { q: "What is a Ripple Delete?", a: ["Deleting a clip and leaving a gap", "Deleting only audio", "Deleting a clip and closing the gap automatically", "Deleting the whole timeline"], ans: 2 },
+                            { q: "Which key toggles Snapping on/off?", a: ["N", "S", "Cmd + N", "Shift + S"], ans: 0 },
+                            { q: "J, K, and L keys are used for?", a: ["Navigation (Reverse, Stop, Forward)", "Saving", "Cutting", "Exporting"], ans: 0 },
+                            { q: "What does the 'Inspector' do?", a: ["Shows project files", "Mixes audio", "Adjusts clip properties like Zoom and Position", "Adds metadata"], ans: 2 },
+                            { q: "A 'Gap' in the timeline is called?", a: ["Gap", "Empty space", "Void", "Black Hole"], ans: 0 },
+                            { q: "How do you zoom in/out of the timeline on a Mac?", a: ["Scroll only", "Cmd+ / Cmd-", "Pinch on trackpad", "Shift + Z"], ans: 1 },
+                            { q: "What is 'Overwriting' a clip?", a: ["Pushing other clips aside", "Deleting the timeline", "Placing it on top and replacing current footage", "Changing color"], ans: 2 },
+                            { q: "Standard frame rate for cinema?", a: ["24fps", "60fps", "30fps", "120fps"], ans: 0 }
+                        ]
+                    }
+                ]
+            },
+            color: {
+                icon: 'Palette',
+                color: 'teal',
+                modules: [
+                    {
+                        id: 1,
+                        title: "Color 1: Primary Correction",
+                        content: "Primary correction sets the base of your image. You must fix exposure, white balance, and contrast before moving to creative looks.",
+                        mentalModel: "The Foundation: You can't paint the walls before the house is built straight.",
+                        quiz: [
+                            { q: "First step in a professional grade?", a: ["Applying a creative LUT", "Masking the subject", "Balancing exposure and white balance", "Sharpening"], ans: 2 },
+                            { q: "Which scope shows brightness from left to right?", a: ["Vectorscope", "Histogram", "Parade", "Waveform"], ans: 3 },
+                            { q: "Lift affects which part of the image?", a: ["Shadows", "Highlights", "Midtones", "Saturation"], ans: 0 },
+                            { q: "Gain affects which part of the image?", a: ["Shadows", "Highlights", "Midtones", "Contrast"], ans: 1 },
+                            { q: "What does Gamma control?", a: ["Whites", "Blacks", "Noise", "Midtones"], ans: 3 },
+                            { q: "Shortcut for Serial Node (Mac)?", a: ["Cmd + S", "Shift + S", "Option + S", "Option + N"], ans: 2 },
+                            { q: "What is 'Clipping'?", a: ["Losing detail in highlights or shadows", "Adding a clip", "Cutting a scene", "Color matching"], ans: 0 },
+                            { q: "Neutral saturation value in Resolve?", a: ["100", "0", "200", "50"], ans: 3 },
+                            { q: "The 'Offset' wheel moves?", a: ["Only highlights", "The entire signal equally", "Only shadows", "Midtones"], ans: 1 },
+                            { q: "Temperature slider at a positive value adds?", a: ["Blue", "Green", "Warm / Orange", "Magenta"], ans: 2 }
+                        ]
+                    }
+                ]
+            },
+            fairlight: {
+                icon: 'Music',
+                color: 'indigo',
+                modules: [
+                    {
+                        id: 1,
+                        title: "Fairlight 1: Audio Mixer",
+                        content: "Fairlight is a professional DAW. It uses buses to route signals from individual tracks to the main output.",
+                        mentalModel: "The Conductor: Balancing every instrument for a perfect symphony.",
+                        quiz: [
+                            { q: "What is Fairlight?", a: ["Color tool", "Text generator", "Professional DAW", "Export tool"], ans: 2 },
+                            { q: "What does a 'Bus' do?", a: ["Moves clips", "Deletes audio", "Adds reverb", "Groups audio signals for processing"], ans: 3 },
+                            { q: "Standard high-quality video sample rate?", a: ["48 kHz", "44.1 kHz", "96 kHz", "22 kHz"], ans: 0 },
+                            { q: "Normalizing audio adjusts?", a: ["Pitch", "Peaks to a target level", "Noise", "Duration"], ans: 1 },
+                            { q: "The Mixer panel controls?", a: ["Color", "VFX", "Volume and Panning", "Codecs"], ans: 2 },
+                            { q: "Panning places sound in which speakers?", a: ["Top / Bottom", "Front only", "Center only", "Left / Right"], ans: 3 },
+                            { q: "Waveform color in Fairlight is usually?", a: ["Gray / Green", "Blue", "Red", "Yellow"], ans: 0 },
+                            { q: "Tool for dialogue replacement?", a: ["VFX", "ADR", "Scopes", "Nodes"], ans: 1 },
+                            { q: "Fairlight track capacity?", a: ["Up to 10", "Only one", "Hundreds", "It depends on CPU"], ans: 2 },
+                            { q: "What is 'dB' short for?", a: ["Double Bass", "Data Bit", "Digital Bass", "Decibel"], ans: 3 }
+                        ]
+                    }
+                ]
+            },
+            fusion: {
+                icon: 'Zap',
+                color: 'orange',
+                modules: [
+                    {
+                        id: 1,
+                        title: "Fusion 1: Node Logic",
+                        content: "Fusion uses nodes to process visual data. Data flows from MediaIn to MediaOut through connected operations.",
+                        mentalModel: "The Water Pipe: If the pipe is disconnected, no water reaches the faucet.",
+                        quiz: [
+                            { q: "Fusion logic is based on?", a: ["Layers", "Nodes", "Tracks", "Scripting"], ans: 1 },
+                            { q: "Final output node in Fusion?", a: ["MediaIn", "Merge", "Render", "MediaOut"], ans: 3 },
+                            { q: "Signal flow direction?", a: ["Top to bottom", "Circular", "Left to right", "Right to left"], ans: 2 },
+                            { q: "Shortcut for tool search on Mac?", a: ["Shift + Space", "Cmd + F", "Cmd + T", "Option + S"], ans: 0 },
+                            { q: "A 'Merge' node combines what?", a: ["Colors", "Two signals (Foreground and Background)", "Audio files", "Export presets"], ans: 1 },
+                            { q: "Yellow input on a Merge node represents?", a: ["Foreground", "Mask", "Background", "Audio"], ans: 2 },
+                            { q: "Green input on a Merge node represents?", a: ["Background", "Mask", "3D", "Foreground"], ans: 3 },
+                            { q: "Blue input on any node is for?", a: ["Effect Mask", "Audio", "Foreground", "Output"], ans: 0 },
+                            { q: "View a node in the left viewer on Mac?", a: ["Press 2", "Press 1", "Drag it", "Double click"], ans: 1 },
+                            { q: "What does a red node indicate?", a: ["Selected", "Rendering", "Error or missing file", "Animation active"], ans: 2 }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        const Icon = ({ name, size = 20, className = "" }) => {
+            useEffect(() => {
+                if (window.lucide) window.lucide.createIcons();
+            }, [name]);
+            return <i data-lucide={name.toLowerCase()} style={{ width: size, height: size }} className={`inline-block ${className}`}></i>;
+        };
+
+        const CelebrationPage = ({ reset }) => {
+            useEffect(() => {
+                const duration = 5 * 1000;
+                const animationEnd = Date.now() + duration;
+                const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+                const randomInRange = (min, max) => Math.random() * (max - min) + min;
+                const interval = setInterval(function() {
+                    const timeLeft = animationEnd - Date.now();
+                    if (timeLeft <= 0) return clearInterval(interval);
+                    const particleCount = 50 * (timeLeft / duration);
+                    confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+                    confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+                }, 250);
+                return () => clearInterval(interval);
+            }, []);
+
+            return (
+                <div className="min-h-screen bg-neutral-950 flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-1000">
+                    <div className="max-w-3xl w-full text-center space-y-12">
+                        <div className="relative inline-block">
+                            <div className="absolute -inset-4 bg-gradient-to-r from-orange-600 via-teal-500 to-blue-600 rounded-full blur-2xl opacity-20 animate-pulse"></div>
+                            <div className="relative bg-neutral-900 border-2 border-white/10 rounded-full p-8 cert-glow">
+                                <Icon name="Trophy" size={80} className="text-orange-500" />
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            <h1 className="text-4xl md:text-7xl font-black text-white tracking-tighter uppercase leading-none">Academy Mastered</h1>
+                            <p className="text-slate-400 text-lg md:text-2xl font-medium max-w-xl mx-auto tracking-tight">You have successfully validated every logic point across the DaVinci Resolve Professional Suite.</p>
+                        </div>
+                        <div className="bg-neutral-900 border border-white/10 rounded-3xl p-8 md:p-12 space-y-8 relative overflow-hidden group">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-teal-500 to-orange-500 animate-gradient-x"></div>
+                            <div className="flex justify-center gap-4 opacity-50">
+                                <Icon name="Scissors" className="text-blue-500" />
+                                <Icon name="Palette" className="text-teal-500" />
+                                <Icon name="Music" className="text-indigo-500" />
+                                <Icon name="Zap" className="text-orange-500" />
+                            </div>
+                            <div className="space-y-2">
+                                <div className="text-[10px] font-black tracking-[0.5em] text-slate-500 uppercase">Certificate of Logic</div>
+                                <div className="text-3xl md:text-5xl font-black text-white italic tracking-tight underline decoration-orange-500/50">Post-Production Master</div>
+                                <div className="text-[10px] font-black text-slate-500 uppercase mt-4">Verified 480 Points • Robomarket Academy</div>
+                            </div>
+                            <div className="pt-8 flex flex-col md:flex-row items-center justify-between border-t border-white/5 gap-4">
+                                <div className="text-left">
+                                    <div className="text-[8px] font-black text-slate-600 uppercase">Prepared By</div>
+                                    <div className="text-xs font-bold text-white uppercase tracking-widest">Joe Nasr</div>
+                                </div>
+                                <button onClick={reset} className="px-8 py-3 bg-white text-black font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-all shadow-2xl">Restart Journey</button>
+                            </div>
+                        </div>
+                        <div className="text-[10px] font-black text-slate-700 uppercase tracking-[0.3em]">UAE • SHARJAH • 2026</div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('edit');
+            const [currentModuleIdx, setCurrentModuleIdx] = useState(0);
+            const [qIdx, setQIdx] = useState(0);
+            const [selected, setSelected] = useState(null);
+            const [showResult, setShowResult] = useState(false);
+            const [score, setScore] = useState(0);
+            const [isCompleted, setIsCompleted] = useState(false);
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const [isAcademyFinished, setIsAcademyFinished] = useState(false);
+            const [passedModules, setPassedModules] = useState({ edit: [], color: [], fairlight: [], fusion: [] });
+
+            const activeAcademy = useMemo(() => ACADEMY_DATA[activeTab], [activeTab]);
+            const module = useMemo(() => activeAcademy.modules[currentModuleIdx] || activeAcademy.modules[0], [activeAcademy, currentModuleIdx]);
+            const currentQuiz = useMemo(() => module.quiz[qIdx] || module.quiz[0], [module, qIdx]);
+            const isPassing = score >= 8;
+
+            const isModuleUnlocked = useCallback((tab, idx) => {
+                if (tab === 'edit' && idx === 0) return true;
+                const tabs = ['edit', 'color', 'fairlight', 'fusion'];
+                if (idx === 0) {
+                    const prevTabIdx = tabs.indexOf(tab) - 1;
+                    if (prevTabIdx < 0) return true;
+                    const prevTab = tabs[prevTabIdx];
+                    return passedModules[prevTab].includes(ACADEMY_DATA[prevTab].modules.length - 1);
+                }
+                return passedModules[tab].includes(idx - 1);
+            }, [passedModules]);
+
+            const handleAnswer = (idx) => {
+                if (showResult) return;
+                setSelected(idx);
+                setShowResult(true);
+                if (idx === currentQuiz.ans) setScore(prev => prev + 1);
+            };
+
+            const nextQuestion = () => {
+                if (qIdx < module.quiz.length - 1) {
+                    setQIdx(prev => prev + 1);
+                    setSelected(null);
+                    setShowResult(false);
+                } else {
+                    setIsCompleted(true);
+                }
+            };
+
+            const resetModule = () => {
+                setQIdx(0);
+                setSelected(null);
+                setShowResult(false);
+                setScore(0);
+                setIsCompleted(false);
+                setIsMenuOpen(false);
+                window.scrollTo(0, 0);
+            };
+
+            const switchTab = (tab) => {
+                setActiveTab(tab);
+                setCurrentModuleIdx(0);
+                resetModule();
+            };
+
+            const handleAcademyProgression = () => {
+                if (!isPassing) return;
+                setPassedModules(prev => ({ ...prev, [activeTab]: [...new Set([...prev[activeTab], currentModuleIdx])] }));
+                const tabs = ['edit', 'color', 'fairlight', 'fusion'];
+                const currentTabIdx = tabs.indexOf(activeTab);
+                if (currentModuleIdx < activeAcademy.modules.length - 1) {
+                    setCurrentModuleIdx(prev => prev + 1);
+                    resetModule();
+                } else if (currentTabIdx < tabs.length - 1) {
+                    switchTab(tabs[currentTabIdx + 1]);
+                } else {
+                    setIsAcademyFinished(true);
+                }
+            };
+
+            if (isAcademyFinished) return <CelebrationPage reset={() => { setIsAcademyFinished(false); setPassedModules({ edit: [], color: [], fairlight: [], fusion: [] }); switchTab('edit'); }} />;
+
+            return (
+                <div className="min-h-screen bg-neutral-950 text-slate-200 font-sans p-4 md:p-8">
+                    <div className="max-w-6xl mx-auto">
+                        <header className="mb-6 md:mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-8">
+                            <div className="flex justify-between items-start w-full md:w-auto">
+                                <div>
+                                    <h1 className="text-2xl md:text-4xl font-black tracking-tighter text-white uppercase leading-none">DAVINCI MASTER ACADEMY</h1>
+                                    <p className="text-slate-500 font-bold uppercase tracking-widest text-[8px] md:text-[10px] mt-2">Certification Path: {activeTab.toUpperCase()} • 480 Validation Points</p>
+                                </div>
+                                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="lg:hidden p-2 bg-neutral-900 border border-white/10 rounded-lg text-white">
+                                    {isMenuOpen ? <Icon name="X" /> : <Icon name="Menu" />}
+                                </button>
+                            </div>
+                            <nav className="flex bg-neutral-900 p-1 rounded-xl border border-white/5 shadow-2xl overflow-x-auto whitespace-nowrap scrollbar-hide">
+                                {Object.keys(ACADEMY_DATA).map((tab) => {
+                                    const unlocked = isModuleUnlocked(tab, 0);
+                                    return (
+                                        <button key={tab} disabled={!unlocked} onClick={() => switchTab(tab)} className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg text-[10px] md:text-xs font-black uppercase tracking-tighter transition-all ${activeTab === tab ? `bg-${ACADEMY_DATA[tab].color}-600 text-white shadow-lg` : unlocked ? 'text-slate-500 hover:text-slate-300' : 'text-slate-700 opacity-40 cursor-not-allowed'}`}>
+                                            <Icon name={unlocked ? ACADEMY_DATA[tab].icon : 'Lock'} size={16} /> {tab}
+                                        </button>
+                                    );
+                                })}
+                            </nav>
+                        </header>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 relative">
+                            <aside className={`lg:col-span-3 space-y-1 fixed inset-0 z-50 bg-neutral-950 p-6 lg:relative lg:p-0 lg:bg-transparent lg:block lg:z-auto ${isMenuOpen ? 'block' : 'hidden'}`}>
+                                <div className="flex justify-between items-center mb-6 lg:hidden">
+                                    <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Module</h2>
+                                    <button onClick={() => setIsMenuOpen(false)}><Icon name="X" size={24} /></button>
+                                </div>
+                                <h2 className="hidden lg:block text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4 px-2">Path Syllabus</h2>
+                                <div className="space-y-1 max-h-[80vh] overflow-y-auto pr-2 custom-scrollbar">
+                                    {activeAcademy.modules.map((m, idx) => {
+                                        const unlocked = isModuleUnlocked(activeTab, idx);
+                                        return (
+                                            <button key={m.id} disabled={!unlocked} onClick={() => { setCurrentModuleIdx(idx); resetModule(); }} className={`w-full text-left p-3 rounded-xl flex items-center gap-3 transition-all ${currentModuleIdx === idx ? `bg-${activeAcademy.color}-600 text-white shadow-lg translate-x-1` : unlocked ? 'hover:bg-neutral-900 text-slate-500' : 'text-slate-800 opacity-40 cursor-not-allowed'}`}>
+                                                <span className={`text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-md ${currentModuleIdx === idx ? 'bg-white/20' : 'bg-neutral-800'}`}>{unlocked ? idx + 1 : <Icon name="Lock" size={10} />}</span>
+                                                <span className="text-[11px] font-black truncate uppercase tracking-tighter">{m.title}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </aside>
+
+                            <main className="lg:col-span-9 space-y-6">
+                                {!isCompleted ? (
+                                    <div key={`${activeTab}-${currentModuleIdx}-${qIdx}`} className="bg-neutral-900 rounded-2xl md:rounded-3xl border border-white/5 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div className="p-5 md:p-12 space-y-8 md:space-y-10">
+                                            <section className="space-y-4">
+                                                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full bg-${activeAcademy.color}-500/10 text-${activeAcademy.color}-400 text-[8px] md:text-[10px] font-black uppercase tracking-widest border border-${activeAcademy.color}-500/20`}><Icon name="BookOpen" size={12} /> Theoretical Concept</div>
+                                                <h2 className="text-2xl md:text-5xl font-black text-white leading-tight tracking-tighter uppercase">{module.title}</h2>
+                                                <p className="text-base md:text-xl leading-relaxed text-slate-400 font-medium tracking-tight">{module.content}</p>
+                                            </section>
+                                            <section className={`bg-${activeAcademy.color}-600/10 border border-${activeAcademy.color}-500/20 rounded-xl md:rounded-2xl p-4 md:p-6 flex gap-4 md:gap-5`}>
+                                                <div className={`bg-${activeAcademy.color}-500/20 p-2 md:p-3 h-fit rounded-lg md:rounded-xl text-${activeAcademy.color}-400`}><Icon name="Info" size={24} /></div>
+                                                <div>
+                                                    <h3 className={`font-black text-${activeAcademy.color}-300 uppercase text-[8px] md:text-[10px] tracking-widest mb-1`}>Logic Model</h3>
+                                                    <p className={`text-${activeAcademy.color}-100/90 text-sm md:text-lg leading-snug italic`}>{module.mentalModel}</p>
+                                                </div>
+                                            </section>
+                                            <div className="pt-6 md:pt-10 border-t border-white/5">
+                                                <div className="bg-black/40 rounded-xl md:rounded-3xl p-4 md:p-10 border border-white/5 shadow-inner">
+                                                    <div className="flex items-center justify-between mb-6 md:mb-8">
+                                                        <div className="flex items-center gap-2 text-slate-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest"><Icon name="HelpCircle" size={14} /> Logic Check {qIdx + 1}/{module.quiz.length}</div>
+                                                        <div className="text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-tighter">Current Score: {score}</div>
+                                                    </div>
+                                                    <div className="space-y-6 md:space-y-8 text-center md:text-left">
+                                                        <h4 className="text-lg md:text-2xl font-bold text-white tracking-tight leading-snug">{currentQuiz.q}</h4>
+                                                        <div className="grid grid-cols-1 gap-2 md:gap-3">
+                                                            {currentQuiz.a.map((opt, i) => (
+                                                                <button key={i} disabled={showResult} onClick={() => handleAnswer(i)} className={`w-full text-left p-4 md:p-5 rounded-lg md:rounded-2xl border-2 transition-all font-bold text-xs md:text-sm ${selected === i ? i === currentQuiz.ans ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' : 'bg-rose-500/20 border-rose-500 text-rose-300' : showResult && i === currentQuiz.ans ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300' : 'bg-neutral-800 border-neutral-800 hover:border-neutral-700 text-slate-500 hover:text-slate-200'}`}>
+                                                                    <div className="flex items-center justify-between"><span>{opt}</span>{showResult && i === currentQuiz.ans && <Icon name="Check" size={16} />}{showResult && selected === i && i !== currentQuiz.ans && <Icon name="X" size={16} />}</div>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                        {showResult && (
+                                                            <div className="flex justify-center md:justify-end pt-4 animate-in slide-in-from-right-2 duration-300">
+                                                                <button onClick={nextQuestion} className="bg-white text-black px-6 md:px-8 py-2 md:py-3 rounded-lg md:rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center w-full md:w-auto">
+                                                                    <span className="w-full text-center">{qIdx === module.quiz.length - 1 ? "FINISH MODULE" : "CONTINUE"}</span>
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="bg-neutral-900 rounded-2xl md:rounded-3xl border border-white/5 p-8 md:p-12 text-center space-y-6 md:space-y-8 animate-in zoom-in-95 duration-500 shadow-2xl">
+                                        <div className={`w-16 h-16 md:w-20 md:h-20 ${isPassing ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30' : 'bg-rose-500/20 text-rose-500 border-rose-500/30'} rounded-full flex items-center justify-center mx-auto mb-4 border`}><Icon name={isPassing ? "CheckCircle2" : "XCircle"} size={40} /></div>
+                                        <h2 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tighter">{isPassing ? "MODULE MASTERY" : "CERTIFICATION FAILED"}</h2>
+                                        <div className="space-y-2">
+                                            <p className="text-slate-400 text-base md:text-xl font-medium px-4 tracking-tight leading-relaxed">You verified <span className="text-white font-bold">{score} / 10</span> logic points on {module.title}.</p>
+                                            {!isPassing && <p className="text-rose-400 text-xs md:text-sm font-black uppercase tracking-widest">Score 8/10 or higher to unlock the next module.</p>}
+                                        </div>
+                                        <div className="flex flex-col gap-3 md:gap-4 justify-center pt-4 max-w-sm mx-auto">
+                                            <button onClick={resetModule} className="w-full flex items-center justify-center gap-2 px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl border-2 border-neutral-800 font-black text-[10px] md:text-xs uppercase tracking-widest text-slate-500 hover:text-white hover:border-neutral-700 transition-all shadow-inner"><Icon name="RotateCcw" size={16} /> <span className="w-full text-center uppercase">RETAKE</span></button>
+                                            <button onClick={handleAcademyProgression} disabled={!isPassing} className={`w-full flex items-center justify-center gap-2 px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all shadow-lg text-center ${isPassing ? `bg-${activeAcademy.color}-600 text-white hover:bg-${activeAcademy.color}-500 shadow-${activeAcademy.color}-500/20` : 'bg-neutral-800 text-neutral-600 cursor-not-allowed grayscale'}`}><span className="flex-1 text-center">NEXT MODULE</span>{isPassing && <Icon name="ArrowRight" size={16} />}</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </main>
+                        </div>
+
+                        <footer className="mt-10 md:mt-16 pt-8 border-t border-white/5 text-center">
+                            <p className="text-slate-600 text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] mb-4 px-4">PROFESSIONAL POST-PRODUCTION LOGIC • PREPARED BY JOE NASR • SAEDUBAI.COM • UAE</p>
+                            <div className="flex justify-center gap-4 md:gap-6 opacity-40 px-4">
+                                <span className="text-[8px] md:text-[10px] font-black text-slate-500 uppercase flex items-center gap-1 md:gap-2"><Icon name="Monitor" size={12}/> Mac Optimized</span>
+                                <span className="text-[8px] md:text-[10px] font-black text-slate-500 uppercase flex items-center gap-1 md:gap-2">Robomarket Certified</span>
+                            </div>
+                        </footer>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
+
